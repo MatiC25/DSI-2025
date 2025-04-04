@@ -1,0 +1,38 @@
+// Otra de las ideas para la implementación era crear la clase materia pero con un estado
+// que indique si la materia fue aprobada, regularizada o no regularizada, y a partir de ahí
+// realizar toda la implemntación, permitiendo más adelante agregar otras cosas,
+// como distinguir entre aprobada-regularizada
+
+@startuml
+Materia -->"*" Materia
+Alumno --|> Materia
+Alumno <-- Inscripcion
+Inscripcion -->"*" Materia
+class Inscripcion {
+
+    + aprobada(Alumno alumno, Materia ... materia){}
+}
+
+class Materia {
+    - nombre: String
+    - correlativas: List<Materia>
+
+
+    + getCorrelativas(): List<Materia>
+    + agregarCorrelativa(Materia ... correlativa): void
+}
+
+class Alumno{
+    - nombre: String
+    - apellido: String
+    - legajo: Integer
+    - especialidad: String
+    - materiasAprobadas: List<Materia>
+
+    + estaAprobado(Materia materia): Boolean
+    + yaLasCurso(List<Materia> materias): Boolean
+    + tieneTodasCorrelativas(List<Materia> materias)
+}
+
+
+@enduml
