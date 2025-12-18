@@ -1,0 +1,173 @@
+@startuml
+
+class Organizacion {
+    - nombreLegal: String 
+    - CUIT: String 
+    - tipoOrganizacion: tipoOrganizacion
+    - sede: Ubicacion
+    - telefono: String 
+    - correo: String 
+    - area: Area 
+    - necesidades: List<NecesidadTecnologica>
+}
+
+class Miembro {
+    - nombre: String 
+    - apellido: String 
+}
+
+class tipoOrganizacion {
+    - nombre: String 
+}
+
+class Ubicacion {
+    - calle: String
+    - altura: String 
+    - lat: Double 
+    - long: Double 
+}
+
+class Area {
+    - nombre: String 
+}
+
+class Validador {
+    - adapter: IValidador
+
+    + validar(CUIT): Boolean
+}
+
+interface IValidador {
+    + validar(CUIT): Boolean
+}
+
+class AdapterArca implements IValidador {
+    + validar(CUIT): Boolean
+}
+
+class NecesidadTecnologica {
+    - descripcion: String
+    - fechaCreacioón: LocalDateTime
+    - estadoActual: Estado
+    - estados: List<CambioEstado> 
+    - modificacion: List<NecesidadModificada>
+}
+
+class CambioEstado {
+    - estado: Estado 
+    - fechaRealizacion: LocalDateTime
+    - motivo: String 
+}
+
+enum Estado {
+    PENDIENTE 
+    REVISION 
+    RECHAZADA
+    ACEPTADA
+}
+
+CambioEstado --> Estado
+
+NecesidadTecnologica -->"*" CambioEstado
+NecesidadTecnologica --> Estado
+NecesidadTecnologica -->"*" NecesidadModificada
+
+Organizacion --> Ubicacion
+Organizacion --> Area 
+Organizacion --> tipoOrganizacion
+Organizacion -->"*" NecesidadTecnologica
+
+Validador --> IValidador
+
+
+''''''''''''''''''''''''''''''''
+'' Organizacion de Hackathons ''
+''''''''''''''''''''''''''''''''
+
+class Hackathon {
+    - organizacionResponsable: String 
+    - sitioWeb: String 
+    - ubicacion: Ubicacion 
+    - cantEstimadaParticipantes: Int 
+    - nivelExperienciaParticipantes: NivelExperiencia
+    - objetivos: List<Objetivo>
+    - stackTecnologicoPlanteado: Tecnologia
+    - historialModificaciones: List<HackathonModificacion>
+    - duracion: String (hs)
+    - hackathonFinalizado: HackathonFinalizado
+}
+
+class HackathonFinalizado {
+    - imagenes: List<Path>
+    - videos: List<Path>
+    - comentarios: List<String>
+    - organizacionParticipo: Organizacion
+    - tecnologiaAbordada: Tecnologia
+}
+
+class Tecnologia {
+    - nombre: String 
+}
+
+enum NivelExperiencia {
+    PRINCIPIANTE
+    INTERMEDIO
+    AVANZADO
+}
+
+Hackathon --> Ubicacion
+Hackathon --> NivelExperiencia
+HackathonFinalizado --> Organizacion
+HackathonFinalizado --> Tecnologia 
+
+Hackathon --> Tecnologia
+Hackathon --> HackathonFinalizado
+
+class MatchMaking {
+    - algoritmos: List<IAlgoritmo>
+    - adapter: INotificador 
+
+    + asignar(Necesidad, Hackathong): Asignacion
+    + notificar(Organizacion)
+}
+
+MatchMaking .. NecesidadTecnologica
+MatchMaking .. Hackathon
+MatchMaking -->"*" IAlgoritmo
+MatchMaking --> INotificador
+
+interface IAlgoritmo {
+    + ejecutar(List<NecesidadTecnologica>, Hackathon): NecesidadTecnologica
+}
+
+class Complejidad implements IAlgoritmo {
+    - adapterIA: IAdapterIA
+    + determinar(NivelExperiencia): TiempoEstimado
+    + ejecutar(List<NecesidadTecnologica>, Hackathon): NecesidadTecnologica
+}
+
+class Cercania implements IAlgoritmo {
+    + ejecutar(List<NecesidadTecnologica>, Hackathon): NecesidadTecnologica
+}
+
+class Asignacion {
+    - estado: Estado 
+    - modificadorPor: nombreAdministrador
+    - fechaModificacion: LocalDateTime
+    - hackathon: Hackathon
+    - necesidad: NecesidadTecnologica
+}
+
+interface INotificador {
+    + notificar(destinatario, mensaje)
+}
+
+class MailSender implements INotificador {
+    + notificar(destinatario, mensaje)
+}
+
+Asignacion --> Estado
+Asignacion --> Hackathon
+Asignacion --> NecesidadTecnologica
+
+@enduml

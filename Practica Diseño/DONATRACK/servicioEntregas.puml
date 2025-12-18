@@ -1,0 +1,57 @@
+@startuml
+
+class Camion {
+    - patente: String 
+    - capacidad: Double
+    - altura: Double 
+    - capacidadPeso: Double
+}
+
+' Cada noche, podemos agregar un crontask y que se haga de forma asincrona
+class ServicioRuteo {
+    - adapter: IRuteo
+    - adapter: IAdapterDonaciones
+
+    + recolectarDepositos(): List<Deposito>
+    + generarPlanRutas(): List<PlanRuta>
+    + recolectarCamiones(): List<Camiones>
+}
+
+interface IRuteo {
+    + generarPlanRutas(): List<PlanRuta>
+}
+
+class AdapterRuthyIA implements IRuteo {
+    + generarPlanRutas(): List<PlanRuta>
+}
+
+interface IAdapterDonaciones {
+    + recolectarDepositos(): List<Deposito>
+}
+
+class AdapterDepositos implements IAdapterDonaciones {
+    + recolectarDepositos(): List<Deposito>
+}
+
+class PlanRuta {
+    - camion: Camion 
+    - rutaAsignada: String  
+    - fechaHoraInicio: LocalDateTime
+    - fechaHoraFin: LocalDateTime
+    - paradas: List<Parada>
+    - distanciaTotal: Double 
+    - duracionTotal: Double
+}
+
+
+class Parada {}
+
+ServicioRuteo -- IRuteo
+ServicioRuteo -- IAdapterDonaciones
+ServicioRuteo .. PlanRuta
+
+
+PlanRuta --"*" Parada
+PlanRuta -- Camion
+
+@enduml

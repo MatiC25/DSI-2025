@@ -1,0 +1,94 @@
+@startuml
+
+class PersonaInteresada {
+    - nombre: String 
+    - apellido: String 
+    - edad: Int 
+    - peso: Double 
+    - altura: Double 
+    - actividadesOcio: List<ActividadOcio>
+    - realizaActividad: Boolean 
+    - objetivos: List<Objetivo>
+    - direccion: String 
+
+    + agregarObjetivo(Objetivo): Void
+}
+
+class Objetivo {
+    - prioridad: Prioridad
+    - fechaInicio: LocalDateTime 
+    - dimesionAFortalecer: Dimesion
+    - fechaRealizacion: Null | LocalDateTime
+    - requiereSeguimientoProfesional: Boolean
+    - profesionalAsignado: Profesional
+}
+
+enum Dimesion {
+    PERSONAL_ANIMICO
+    SALUD_FISICA
+}
+
+enum Prioridad {
+    ALTA 
+    MEDIA 
+    BAJA 
+}
+
+class ActividadOcio {
+    - nombre: String 
+}
+
+class EncuestaResuelta {
+    - encuestado: PersonaInteresada
+    - encuesta: Encuesta
+    - respuestas: List<Respuesta>
+}
+
+class Encuesta {
+    - actividadAsociada: ActividadOcio
+    - preguntas: List<Pregunta>
+
+    + agregarPregunta(Pregunta ...): Void
+} 
+
+class Pregunta {
+    - description: String 
+    - tipoPregunta: TipoPregunta
+    - opciones: List<Opcion>
+}
+
+enum TipoPregunta {
+    multiple_choice
+    single_choice
+    desarrollo
+}
+
+class Opcion {
+    - valor: String 
+    - unidad: String 
+}
+
+class Respuesta {
+    - preguntaAsociada: Pregunta
+    - opcionesSeleccionadas: List<Opcion>
+} 
+
+PersonaInteresada --"*" ActividadOcio
+
+EncuestaResuelta -- Encuesta
+EncuestaResuelta -- PersonaInteresada
+EncuestaResuelta --"*" Respuesta
+
+Encuesta --"*" Pregunta
+Encuesta -- ActividadOcio
+
+Pregunta --"*" Opcion
+Pregunta -- TipoPregunta
+
+Respuesta -- Pregunta
+Respuesta --"*" Opcion
+
+Objetivo -- Prioridad
+Objetivo -- Profesional 
+Objetivo -- Dimesion
+@enduml

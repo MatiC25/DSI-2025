@@ -1,0 +1,246 @@
+@startuml
+
+class Moto {
+    - marca: String 
+    - modelo: String 
+    - año: Double
+    - patente: String 
+    - fotos: List<Path>
+    - capacidadTanque: Int 
+}
+
+class Marca {
+    - nombre: String 
+    - modelos: List<Modelo>
+}
+
+class Modelo {
+    - nombre: String 
+}
+
+Marca --"*" Modelo
+
+Moto -- Marca 
+Moto -- Modelo 
+
+class Motoquero {
+    - nombre: String 
+    - apellido: String
+    - categoria: Categoria
+}
+
+class Categoria {
+    - nombre: String 
+    - KmNecesarios: Double
+}
+
+class CaminoNoConvencional {
+    - nombre: String 
+    - descripcion: String 
+    - fotos: List<FotoCamino>
+    - nivelDificultad: Dificultad
+    - tipoTerreno: TipoTerreno
+    - duracionEstimadaDia: Double 
+    - duracionEstimadaHora: Double 
+    - distanciaTotal: Double 
+    - puntoPartida: Ubicacion
+    - puntoLlegada: Ubicacion
+    - puntosDeInteres: List<PuntoInteres>
+    - categoriasPermitidas: List<Categoria>
+
+    + agregar(puntoInteres)
+}
+
+class FotoCamino {
+    - descripcion: String
+    - url: String 
+}
+
+enum Dificultad {
+    PRINCIPIANTE 
+    INTERMEDIO 
+    AVANZADO 
+    EXTREMO
+}
+
+class TipoTerreno {
+    - nombre: String 
+}
+
+class PuntoInteres {
+    - tipoPunto: TipoPunto
+    - descripcion: String 
+    - ubicacion: Ubicacion
+    - fotos: List<Path>
+
+    + agregarACamino(camino)
+}
+
+class TipoPunto {
+    - descripcion
+}
+
+class Viaje {
+    - fecha: LocalDateTime
+    - camino: CaminoNoConvencional
+    - moto: Moto
+}
+
+class PlanificadorViajes {
+
+    + buscarCaminos(categoria): List<Camino>
+    + generarViaje(motoquero, moto, List<TipoPuntoInteres>): Viaje
+}
+
+class Recomendacion {
+    - motoquero: Motoquero
+    - lugaresAVisitar: List<PuntoInteres>
+    - precauciones: String 
+    - sugerencia: Sugerencia 
+}
+
+class Sugerencia {
+    - actividad: String 
+    - tipsSeguridad: List<String>
+    - sugerenciasEquipamiento: List<Equipamiento>
+}
+
+class Equipamiento {
+    - item: String 
+    - descripcion: String
+}
+
+class Recomendador {
+    - adapterNotificacion: List<INotificacion>
+    - adapterGPT4: IRecomendacion
+    - adaptersClima: List<IRecomendacionClima>
+
+    + obtenerRecomendacion(detalleCamino, clima): Sugerencia
+    + consultarClima(): String 
+    + generarRecomendaciones(): Void
+    + enviarRecomendacion(recomendacion)
+}
+
+interface INotificacion {
+    + enviarRecomendacion(recomendacion)
+}
+
+class WhatsappSender implements INotificacion {
+    + enviarRecomendacion(recomendacion)
+}
+
+class NotificacionPush implements INotificacion {
+    + enviarRecomendacion(recomendacion)
+}
+
+interface IRecomendacionClima {
+    + consultarClima(): String 
+}
+
+class AccuWeather implements IRecomendacionClima {
+    + consultarClima(): String
+}
+
+class Windguru implements IRecomendacionClima {
+    + consultarClima(): String
+}
+
+interface IRecomendacion {
+    + obtenerRecomendacion(detalleCamino, clima): Sugerencia
+}
+
+class AdapterGPT4 implements IRecomendacion {
+    + obtenerRecomendacion(detalleCamino, clima): Sugerencia
+}
+
+class Formulario {
+    - preguntas: List<Pregunta>
+}
+
+class Feedback {
+    - puntuacionEstrella: Int 
+    - puntuacion: Puntuacion
+    - preguntasRealizadas: List<Pregunta>
+    - respuestas: List<Respuesta>
+    - viajeAsociado: Viaje
+}
+
+note right of Feedback
+    FEEDBACK CONTROLLER
+    crearFeedback(datosDTO){
+    // Manejar try and catch en caso de que ese motoquero no exista
+    motoquero = this.repoMotoquero(datosDTO.motoqueroID)
+    formAContesta = this.repoForm(datosDTO.formID)
+    feedback = Feedback.of(form, datosDTO.puntaje)
+
+    for (respuesta in datosDTO.respuesta){
+        unaRespuesta = new Respuesta();
+        preguntaAContestar = 
+    }
+    }
+end note 
+
+Feedback -- Viaje
+
+class Pregunta {
+    - tipoPregunta: String
+    - descripcion: String 
+    - opciones: List<Opcion>
+}
+
+Pregunta --"*" Opcion
+Formulario --"*" Pregunta
+
+class Opcion {
+    - descripcion: String 
+    - valor: String
+}
+
+class Respuesta {
+    - descripcion: String 
+    - valor: String
+    - pregunta: Pregunta
+}
+
+enum Puntuacion {
+    MUY FEO 
+    FEO 
+    BUENO 
+    MUY BUENO 
+    EXCELENTE 
+}
+
+Recomendador --"*" INotificacion
+Recomendador -- IRecomendacion
+Recomendador --"*" IRecomendacionClima
+Recomendador .. Recomendacion
+
+CaminoNoConvencional --"*" FotoCamino
+CaminoNoConvencional -- TipoTerreno
+CaminoNoConvencional -- Dificultad
+CaminoNoConvencional --"*" Categoria
+
+Motoquero -- Categoria
+
+Viaje -- CaminoNoConvencional
+Viaje --"*" PuntoInteres
+Viaje -- Moto
+
+PuntoInteres -- TipoPunto
+
+PlanificadorViajes .. Camino
+PlanificadorViajes .. Viaje 
+
+Feedback --"*" Pregunta 
+Feedback --"*" Respuesta 
+Feedback -- Puntuacion
+
+Respuesta -- Pregunta
+
+Recomendacion -- Sugerencia 
+Sugerencia --"*" Equipamiento
+
+Recomendacion -- Motoquero
+Moto -- Motoquero
+
+@enduml

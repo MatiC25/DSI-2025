@@ -1,0 +1,36 @@
+@startuml
+
+class PerfilProfesional {
+    - nombre: String 
+    - apellido: String 
+    - profesion: Profesion
+    - matriculaProfesional: String 
+    - fechaVencimiento: LocalDateTime
+    - direccionConsultorio: String 
+    - correo: String 
+    - modalidad: Presencial | Virtual 
+}
+
+class Profesion {
+    - nombre: String 
+}
+
+class ValidadorMatricula {
+    - adapter: IAdapter
+
+    + verificarMatricula(matricula): fechavalidez LocalDateTime
+}
+
+interface IAdapter {
+    + verificarMatricula(matricula): fechavalidez LocalDateTime
+}
+
+class AdapterMinisterioSalud implements IAdapter {
+    + verificarMatricula(matricula): fechavalidez LocalDateTime
+}
+
+ValidadorMatricula -- IAdapter
+
+PerfilProfesional -- Profesion
+
+@enduml

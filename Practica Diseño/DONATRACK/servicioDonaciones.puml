@@ -1,0 +1,154 @@
+@startuml
+
+class Donante {
+    - nombre: String 
+    - apellido: String 
+    - razonSocial: Int
+}
+
+class Donacion {
+    - descripcion: String 
+    - bienes: List<Bien>
+    - cambiosEstado: List<CambioEstado>
+    - estadoActual: Estado
+    - donante: Donante
+    - algoritmo: IAlgoritmoAsignacion
+
+    + cambiarEstado(estado Estado)
+}
+
+class Deposito {
+    - numDeposito: Int 
+    - donaciones: List<Donacion>
+
+    + obtenerDonaciones(): List<Donacion>
+}
+
+class CambioEstado {
+    - fechaRealizacion: LocalDateTime
+    - estado: Estado
+}
+
+enum Estado {
+    PENDIENTE 
+    EN_DEPOSITO
+    ENTREGADA
+}
+
+class Bien {
+    - nombre
+    - categoria: Categoria
+    - cantidad: Int 
+}
+
+interface ICategoria {
+    + getNombre(): String 
+}
+
+class Mobiliarios implements ICategoria {
+    - nombre: String 
+    - estadoDeUso: Usado | NoUsado
+}
+
+class Perecedero implements ICategoria {
+    - nombre: String 
+    - fechaDeVencimiento: LocalDateTime
+}
+
+class Beneficiario {
+    - razonSocial: Int 
+    - calle: String 
+    - altura: String
+    - numTelefono: Int 
+    - correoRepresentante: String 
+    - necesidades: List<Necesidad>
+
+
+    + agregarNecesidad(necesidad): void 
+    + buscarNecesidades(): List<Necesidad>
+}
+
+class Necesidad {
+    - categoria: Categoria
+    - descripcion: String 
+    - estado: Cubierta | NoCubierta
+}
+
+class Registrador {
+    - adapter: IAdapterValidador
+
+    + registrarBeneficiario(beneficiario): Beneficiario
+    + registrarDonante(donante): Donante
+    + confirmarRecepcion(beneficiario, donacion)
+}
+
+'Aca se puede agregar un crontask si así lo deseamos 
+' para ejecutar este algoritmo de rankings cada X tiempo
+class ProcesadorDonaciones {
+    + generarRanking(List<Beneficiario> listaBenef): Ranking
+    
+}
+
+class Ranking {
+    - List<Beneficiario>
+    - donacion: Donacion 
+    + aceptarBeneficiario(Beneficiario): Void
+}
+' Top 10 Beneficiarios
+interface IAlgoritmoAsignacion {
+    + calcularRanking(): List<Beneficiario> 
+}
+
+class CompMatch implements IAlgoritmoAsignacion {
+    + calcularRanking(): List<Beneficiario> 
+}
+
+class EquiReach implements IAlgoritmoAsignacion {
+    + calcularRanking(): List<Beneficiario> 
+}
+
+note right of Registrador
+    public Beneficiario registrarBeneficiario(beneficiario){
+        if(this.verificar(beneficiario.razonSocial())){
+            return Beneficiario.build()
+                .razonSocial(beneficiario.razonSocial())
+                .nombre(beneficiario.nombre())
+                ...
+        }
+    }
+end note
+
+interface IAdapterValidador {
+    + verificar(razonSocial: Int): Boolean
+}
+
+class AdapterRegistroNacional implements IAdapterValidador {
+    + verificar(razonSocial: Int): Boolean
+}
+
+Registrador -- IAdapterValidador
+Registrador .. Beneficiario
+Registrador .. Donante
+
+Donacion -- Donante
+Donacion --"*" CambioEstado
+Donacion -- Estado
+Donacion --"*" Bien
+Donacion -- IAlgoritmoAsignacion
+
+CambioEstado -- Estado
+
+Bien -- ICategoria
+
+Necesidad -- ICategoria
+
+Beneficiario --"*" Necesidad
+
+Deposito --"*" Donacion
+
+ProcesadorDonaciones .. Ranking
+Ranking --"*" Beneficiario
+Ranking -- Donacion 
+
+
+@enduml

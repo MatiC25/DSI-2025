@@ -1,0 +1,150 @@
+@startuml
+
+class EventoSanitarioInputDTO {
+    - tipoEvento: String 
+    - fechaInicio: String
+    - zona: UbicacionInputDTO
+    - nivel: String  
+
+}
+
+enum NivelUrgencia {
+    CRITICO 
+    EXTREMO 
+    LEVE 
+    MODERADO
+}
+
+class EventoSanitario {
+    - tipoEvento: tipoEvento
+    - fechaInicio: LocalDateTime
+    - zona: Ubicacion 
+    - nivel: NivelUrgencia
+}
+
+class ServicioCiudadano {
+    - adapter: AdapterClienteAfectado
+
+
+    + obtenerCiudadanosAfectados(filtros): List<CiudadanoDTO>
+}
+
+interface IAdapterCiudadano {
+    obtenerCiudadanos(filtros)
+}
+
+class AdapterClienteAfectado implements IAdapterCiudadano {
+    obtenerCiudadanos(filtros)
+}
+
+note right of AdapterClienteAfectado 
+
+    public List<CiudadanosDTO> obtenerCiudadanos(filtros){
+        return webclient.get()
+            .uri(/ciudadanos)
+            .body(CiudadanoDTO.class)
+    }
+
+end note 
+
+class ServiceRecomendaciones {
+    - adapters: List<IAdapterRecomendacion>
+
+    + enviar(Recomendacion)
+}
+
+class Recomendacion {
+    - descripcion: String 
+    - severidad: Severidad
+    - tipoEvento: tipoEvento
+    - fecha: LocalDateTime
+
+    + obtenerCiudadanos(filtros)
+    + esFactorRiesgo(ciudadano): Boolean
+}
+
+interface IAdapterRecomendacion {
+    + enviar(Recomendacion)
+}
+
+class AdapterEventos implements IAdapterRecomendacion {
+    + enviar(Recomendacion)
+}
+
+
+class ServicioAlertas {
+    - adapters: List<IAdapterAlertas>
+
+    + obtenerCiudadanos(filtros)
+    + enviar(Alerta)
+    + registrarAlerta(AlertaSanitaria)
+}
+
+interface IAdapterAlertas {
+    + enviar(Alerta)
+}
+
+class AdapterNotificacionPush implements IAdapterAlertas {
+    + enviar(Alerta)
+}
+
+class AdapterEmailSender implements IAdapterAlertas {
+    + enviar(Alerta)
+}
+
+class AdapterAlertaEmergencia implements IAdapterAlertas {
+    + esExtremo(Evento)
+    + obtenerEventos(filtros)
+    + enviar(Alerta)
+}
+
+class AlarmaSanitaria {
+    - descripcion: String 
+    - fechaAcontecimiento: LocalDateTime
+}
+
+class ServicioAlarmasFisicas {
+    - adapter: IAdapterAlertasFisicas
+
+    registrarAlerta(dato)
+}
+
+interface IAdapterAlertasFisicas {
+    + recibirAlerta(dato)
+}
+
+class AdapterAlertaFisica implements IAdapterAlertasFisicas {
+    - gradoSeveridad: Severidad
+    + recibirAlerta(dato)
+}
+
+ServiceRecomendaciones .. Recomendacion
+ServiceRecomendaciones --"*" IAdapterRecomendacion
+
+ServicioAlertas --"*" IAdapterAlertas
+ServicioAlertas .. AlertaEvento
+
+ServicioAlarmasFisicas .. AlarmaSanitaria
+
+ServicioAlarmasFisicas -- IAdapterAlertasFisicas
+
+AdapterAlertaFisica -- Severidad
+
+EventoSanitario -- NivelUrgencia
+EventoSanitario -- TipoEvento
+
+Recomendacion -- TipoEvento 
+
+ServicioCiudadano -- IAdapterCiudadano
+
+class TipoEvento {
+    - nombre: String
+}
+
+enum Severidad {
+    CRITICO
+    EXTREMO 
+    ALTA
+}
+
+@enduml

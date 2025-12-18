@@ -1,0 +1,28 @@
+@startuml
+
+class Asignador {
+    - adapterInteresado: IAdapterInteresado
+    - adapterProfesional: IAdapterProfesional
+
+    + obtenerInteresados(): PersonaInteresadaDTO
+    + obtenerProfesionales(): ProfesionalDTO
+    + asignarProfesional(datosDTO)
+}
+
+class Asignacion {
+    - interesado: PersonaInteresada
+    - objetivo: Objetivo 
+    - opciones: List<Profesionales>
+}
+
+class DatosDTO {
+    - direccionConsultorio: List<DireccionDTO> 
+    - direccion: DireccionDTO
+    - objetivos: List<ObjetivoDTO>
+    - profesiones: List<Profesiones>
+}
+
+Asignador -- IAdapterInteresado 
+Asignador -- IAdapterProfesional
+
+@enduml

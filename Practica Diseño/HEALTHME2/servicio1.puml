@@ -1,0 +1,189 @@
+@startuml
+
+
+class Interesado {
+    - nombre: String 
+    - apellido: String 
+    - edad: Double 
+    - peso: Double 
+    - actividades: List<ActividadOcio>
+    - realizaActividad: Boolean
+    - objetivos: List<Objetivo>
+}
+
+class ActividadOcio{
+    - descripcion: String 
+}
+
+class Objetivo {
+    - prioridad: Prioridad
+    - fechaInicio: LocalDateTime
+    - fechaRealizacion: LocalDateTime
+    - dimensionAFortalecer: Dimension
+
+    + cambiarPrioridad(Prioridad)
+}
+
+enum Prioridad {
+    ALTA 
+    MEDIA 
+    BAJA
+}
+
+enum Dimension {
+    PERSONAL
+    ANIMICO
+    SALUD_FISICA
+}
+
+Objetivo -- Prioridad
+Objetivo -- Dimension
+
+class Encuesta {
+    - preguntas: List<Pregunta>
+    - actividadAsociada: ActividadOcio
+
+    + agregarPregunta(Pregunta)
+    + quitarPregunta(Pregunta)
+}
+
+class Pregunta {
+    - tipoPregunta: TipoPregunta
+    - opciones: List<Opcion>
+    - description: String 
+
+    + agregarOpcion(Opcion)
+}
+
+class Opcion {
+    - valor: String 
+    - unidad: String 
+}
+
+enum TipoPregunta {
+    SINGLE CHOICE 
+    MULTIPLE CHOICE
+    DESARROLLO
+}
+
+class Respuesta {
+    - preguntaAsociada: Pregunta 
+    - opcionesSeleccionada: List<Opcion>
+}
+
+class EncuestaRealizada {
+    - encuestado: Interesado 
+    - encuestaAsociada: Encuesta
+    - respuestas: List<Respuesta>
+
+    + agregarRespuesta(Respuesta)
+}
+
+EncuestaRealizada -- Encuesta
+EncuestaRealizada <-- Interesado
+EncuestaRealizada --"*" Respuesta
+
+Respuesta -- Pregunta
+Respuesta --"*" Opcion
+
+Interesado -->"*"ActividadOcio
+Interesado -->"*" Objetivo
+
+
+Encuesta -- ActividadOcio
+Encuesta -->"*" Pregunta
+
+Pregunta -->"*" Opcion
+Pregunta -- TipoPregunta
+
+'''''''''''''''''''''''''
+' SERVICIO PROFESIONALES '
+'''''''''''''''''''''''''
+
+
+class Profesional {
+    - profesion: Profesion 
+    - nombre: String 
+    - apellido: String 
+    - matricula: Matricula 
+    - direccionConsultorio: Ubicacion
+    - correoElectronico: String 
+    - modalidad: Modalidad
+}
+
+class Profesion {
+    - descripcion: String 
+}
+
+class Matricula {
+    - numero: String 
+    - fechaDeValidez: LocalDateTime
+}
+
+class Ubicacion {
+    - lat: Double 
+    - long: Double 
+    - calle: String 
+    - altura: String 
+}
+
+class Validador {
+    - adapter: IAdapterValidacion
+
+    + validar(numeroMatricula): Matricula
+}
+
+interface IAdapterValidacion {
+    + validar(numeroMatricula): Matricula
+}
+
+class AdapterMinisterio implements IAdapterValidacion {
+    - url: String 
+    + validar(numeroMatricula): Matricula
+}
+
+Validador -- IAdapterValidacion
+Validador .. Matricula
+
+
+Profesional -- Profesion
+Profesional -- Matricula
+Profesional -- Modalidad
+Profesion -- Ubicacion
+
+'''''''''''''''''''''''''
+' SERVICIO ASIGNACION '
+'''''''''''''''''''''''''
+
+class Asignador {
+    - adapterProfesional: IAdapterProfesionales
+    - adapterInteresado: IAdapterInteresado
+
+    + asignarATodos(List<direcConsultorio>, List<direcInteresado>, List<List<Objetivo>>, List<Profesion>)
+    + asignarA(direcConsultorio, direcInteresado, List<Objetivo>, Profesion): List<Asignacion>
+}
+
+class Asignacion {
+    - interesadoID: String 
+    - profesionalID: String 
+    - objetivoID: String 
+    - estado: Estado 
+}
+
+enum Estado {
+    PENDIENTE 
+    RECHAZADO 
+    ACEPTADO 
+}
+
+interface IAdapterProfesionales {}
+interface IAdapterInteresado {}
+
+Asignador -- IAdapterProfesionales
+Asignador -- IAdapterInteresado
+Asignador .. Asignacion
+
+
+Asignacion -- Estado
+
+@enduml

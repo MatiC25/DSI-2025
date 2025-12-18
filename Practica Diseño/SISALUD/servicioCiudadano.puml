@@ -1,0 +1,154 @@
+@startuml
+
+' Vacuna seria un INPUT DTO
+class Ciudadano {
+    - nombre: String 
+    - apellido: String 
+    - DNI: String 
+    - ubicacion: Ubicacion
+    - perfilSanitario: PerfilSanitario
+
+    + cambiarResidencia(ubicacion Ubicacion): void
+    + registrarVacunacion(vacuna)
+    + updatePerfilSanitario(perfilSanitarioDTO)
+}
+
+note right of Ciudadano
+    public registrarVacunacion(vacuna){
+        this.perfilSanitario.registrar(vacuna)
+    }
+end note 
+
+class Ubicacion {
+    - lat: Double
+    - long: Double
+    - barrio: String 
+    - tipoZona: String 
+}
+
+class PerfilSanitario {
+    - grupoEtario: GrupoEtario
+    - factoresDeRiesgo: List<FactoresDeRiesgo>
+    - vacunas: List<RegistroVacuna>
+    + registrar(vacuna)
+    + update(perfilSanitarioDTO)
+}
+
+note right of PerfilSanitario 
+    // **Patron Builder**
+    public registrar(vacuna){
+        RegistroVacuna r = RegistroVacunaMapper.toDomain(vacuna)
+        this.vacunas.save(r)
+    }
+end note
+
+' Permite trazabilidad
+class RegistroVacuna {
+    // - esquemaVacunacion: EsquemaVacunacion
+    - tipoVacuna: tipoVacuna
+    - estado: Estado 
+    - fechaUltimaDosis: LocalDateTime
+    - fechaUltimaModificacion: LocalDateTime
+}
+
+enum GrupoEtario {
+    NIÑO
+    JOVEN
+    ADULTO
+    ADULTO_MAYOR
+}
+
+class Estado {
+    Completa
+    Incompleta
+    Vencida
+}
+
+class FactoresDeRiesgo {
+    tipoDeEventoSanitario: EventoSanitario
+    gradoDeSensibilidad: GradoSensibilidad
+}
+
+enum EventoSanitario {
+    Respiratorio
+    Ambiental 
+    Alimentario
+}
+
+enum GradoSensibilidad {
+    Leve 
+    Moderado
+    Alto
+}
+
+class VacunaInputDTO {
+    tipo: String 
+    fecha: String 
+    estado: String 
+    fechaRealizacion: String 
+}
+
+class BusquedaUbicacion {
+    
+    + agregarFiltro(IFiltro ...)
+    + buscar(List<IFiltros>): List<Ciudadanos>
+    + cumpleFiltros()
+}
+
+note right of BusquedaUbicacion
+    public List<Ciudadanos> buscar(){
+        return ciudadanosRepository.findall().stream()
+            .filter(this::cumpleFiltros)
+            .toList()
+    }
+
+    public Boolean cumpleFiltros(c Ciudadano){
+        return filtros.stream().allMatch(f -> f.cumpleCriterio(c))
+    }
+end note 
+
+interface IFiltro {
+    + cumpleCriterio(): Boolean
+}
+
+class FiltroPorRadio implements IFiltro {
+    - lat: double
+    - long: double
+    - kilometros: Integer 
+
+    + cumpleCriterio(): Boolean
+}
+
+class FiltroPorBarrio implements IFiltro {
+    - barrio: String
+
+    + cumpleCriterio(): Boolean
+}
+
+class FiltroPorPoligono implements IFiltro {
+    - puntos: List<Tupla(lat,long)>
+
+    + cumpleCriterio(): Boolean
+}
+
+
+
+Ciudadano -- Ubicacion
+Ciudadano o-- PerfilSanitario
+
+PerfilSanitario -- RegistroVacuna
+PerfilSanitario -- GrupoEtario
+PerfilSanitario -- FactoresDeRiesgo
+
+RegistroVacuna -- Estado
+
+FactoresDeRiesgo -- EventoSanitario
+FactoresDeRiesgo -- GradoSensibilidad
+
+PerfilSanitario .. VacunaInputDTO
+Ciudadano .. VacunaInputDTO
+
+BusquedaUbicacion -- IFiltro
+BusquedaUbicacion .. Ciudadano
+
+@enduml
