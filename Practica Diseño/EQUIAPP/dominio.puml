@@ -1,0 +1,225 @@
+@startuml
+
+class Estudiante {
+    - legajo: String 
+    - nombre: String 
+    - apellido: String 
+    - fechaNacimiento: LocalDateTime
+    - direccion: Ubicacion
+    - fechaIngreso: String
+    - desempeño: Desempeño 
+}
+
+class Desempeño {
+    - cantAsignaturasCursadas: Int 
+    - cantAsignaturasFirmadas: Int 
+    - cantAsignaturasAprobadas: Int 
+    - cantAsignaturasPromocionadas: Int 
+    - Promedio: ValueObject
+
+}
+
+note left of Desempeño
+    Sería un value object el cual se 
+    recalcularía una/dos veces por año para cada alumno
+    ya que cuatrimestralmente cursará nuevas 
+    materias y se deberá actualizar su información
+end note 
+
+' Será embebido en el DER
+class Ubicacion {
+    - calle: String 
+    - altura: String 
+    - lat: String 
+    - long: String 
+}
+
+Estudiante --> Ubicacion
+Estudiante --> Desempeño
+
+class GestorEstudiantes {
+    - adapterGestionEstudiante: IAdapterEstudiante
+    - adapterGestionAcademica: IAdapterEstudiante
+
+    + buscarDatosPor(legajo): IEstudianteDTO
+    + buscarNotas(legajo, cursada): Map<Parcial, Nota>
+    + generarDesempeño(estudiante): Desempeño
+}
+GestorEstudiantes -->"*" IAdapterEstudiante
+GestorEstudiantes .. Desempeño
+GestorEstudiantes .. Estudiante
+
+interface IAdapterEstudiante {
+    + buscarPor(legajo): IEstudianteDTO 
+    
+}
+
+interface IBuscador {
+    + buscarNotas(legajo, cursada): Map<Parcial, Nota>
+    + buscarPlanes(): List<PlanCarrera>
+    + buscarAsignaturas(): List<Asignatura>
+}
+
+IBuscador .. PlanCarrera
+IBuscador .. Asignatura
+
+class AdapterGestionEstudiante implements IAdapterEstudiante{
+    + buscarPor(legajo): IEstudianteDTO 
+    
+}
+
+class AdapterGestionAcademica implements IAdapterEstudiante, IBuscador{
+    + buscarPor(legajo): IEstudianteDTO 
+    + buscarNotas(legajo, cursada): Map<Parcial, Nota>
+    + buscarPlanes(): List<PlanCarrera>
+    + buscarAsignaturas(): List<Asignatura>
+}
+
+
+note right of GestorEstudiantes 
+// La idea es que en el service se mappee a la entidad limpia
+// del dominio, IEstudianteDTO representa lo que podría 
+// ser los datos personales o el historial academico
+    public estudianteDTO buscarPor(legajo){
+        EstudianteDTO e = IAdapterEstudiante.buscarPor(legajo)
+
+        Estudiante e2 = Estudiante.builder()
+                            .nombre(e.nombre)
+                            ...
+    }
+
+end note 
+
+class Cuestionario {
+    - tipo: TipoCuestionario
+    - preguntas: List<Pregunta>
+    - ultimaModificación: LocalDateTime
+
+    + agregar(Pregunta): void 
+}
+
+class CuestionarioRespuesto {
+    - encuestado: Estudiiante
+    - respuestas: List<Respuestas>
+    - cuestionario: Cuestionario
+}
+
+enum TipoCuestionario {
+    HABILIDADES_INTERPERSONALES
+    HABILDIADES_TECNICAS
+}
+
+class Respuesta {
+    - pregunta: Pregunta
+    - opciones: List<Opcion>
+}
+
+class Pregunta {
+    - tipoPregunta: TipoPregunta
+    - opciones: List<Opcion>
+}
+
+class Opcion {
+    - unidad: String 
+    - valor: String 
+}
+
+enum TipoPregunta {
+    MULTIPLE CHOICE 
+    SINGLE CHOICE 
+    DESARROLLO
+}
+
+Cuestionario --> TipoCuestionario
+Cuestionario -->"*" Pregunta
+
+CuestionarioRespuesto --> Cuestionario
+CuestionarioRespuesto --> Estudiante
+CuestionarioRespuesto -->"*" Respuesta
+
+Pregunta --> TipoPregunta
+Pregunta -->"*" Opcion 
+
+Respuesta --> Pregunta
+Respuesta -->"*" Opcion 
+
+class BuscadorEquipos {
+    - adapterGestionAcademica: IAdapterEstudiante
+    - adapterAlgoritmo: IAdapterWebhook
+
+    + buscarPlanes(): List<PlanCarrera>
+    + buscarAsignaturas(): List<Asignatura>
+    + buscarEquipo(busquedaVO): List<EquipoSugerido>
+    + cruzar(BusquedaEquipo, List<EquipoSugerido>): List<BusquedaEquipo>
+}
+
+interface IAdapterWebhook {
+    + recibirDatos(idBusqueda): List<EquipoSugerido>
+}
+
+class WebhookCoincidencia implements IAdapterWebhook {
+    - callback: String 
+    + recibirDatos(idBusqueda): List<EquipoSugerido>
+}
+
+class EquipoSugerido {
+    - estudiantes: List<Estudiante>
+    - fechaGeneracion: LocalDateTime
+}
+
+BuscadorEquipos -->"*" EquipoSugerido
+
+
+class BusquedaVO {
+    codigoPlanCarrera: String 
+    asignatura: String 
+    cantIntegrantesMin: Int
+    cantIntegrantesMax: Int
+    descripcion: String   
+}
+
+note bottom of BusquedaVO
+    Resuelve el code smell de parametros largos
+end note 
+
+BuscadorEquipos .. BusquedaVO
+BuscadorEquipos -->"*" Asignatura
+BuscadorEquipos -->"*" PlanCarrera
+BuscadorEquipos -->"*" BusquedaEquipo
+BuscadorEquipos --> IAdapterWebhook
+
+class BusquedaEquipo {
+    - id: String 
+    - fechaGeneracion: LocalDateTime
+    - resultados: List<Resultado>
+    - estado: EstadoBusqueda
+}
+
+BuscadorEquipos --> EstadoBusqueda
+
+enum EstadoBusqueda {
+    SIN CLASIFICAR
+    SUGERIDA
+    ACEPTADA
+    RECHAZADA
+}
+
+BusquedaEquipo -->"*" Resultado
+
+class Resultado {
+    - id: String 
+    - estudiantes: List<IDs>
+}
+
+class Asignatura {
+    - nombre: String 
+}
+
+class PlanCarrera {
+    - codigo: String 
+    - descripcion: String 
+    - añoPuestaMarca: Int
+    - ultimaActualizacion: LocalDateTime
+}
+
+@enduml
